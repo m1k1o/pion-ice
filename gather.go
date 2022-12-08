@@ -273,6 +273,7 @@ func (a *Agent) gatherCandidatesLocalUDPMux(ctx context.Context) error { //nolin
 		return errUDPMuxDisabled
 	}
 
+	duplicateIps := make(map[string]struct{})
 	localAddresses := a.udpMux.GetListenAddresses()
 
 	for _, addr := range localAddresses {
@@ -289,6 +290,11 @@ func (a *Agent) gatherCandidatesLocalUDPMux(ctx context.Context) error { //nolin
 				candidateIP = mappedIP
 			}
 		}
+
+		if _, ok := duplicateIps[candidateIP.String()]; ok {
+			continue
+		}
+		duplicateIps[candidateIP.String()] = struct{}{}
 
 		conn, err := a.udpMux.GetConn(a.localUfrag, udpAddr)
 		if err != nil {
